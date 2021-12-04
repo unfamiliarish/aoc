@@ -2,10 +2,7 @@ from typing import Sequence, Tuple, Dict
 
 from copy import copy
 
-
-def read_file(filename: str) -> Sequence[str]:
-    with open(filename, 'r') as file_stream:
-        return [line.strip() for line in file_stream.readlines()]
+from aoc.utils import read_file
 
 
 def binary_to_int(binary_num: str) -> int:
@@ -103,10 +100,11 @@ def get_life_support_rating(o: int, co2: int) -> int:
     return o * co2
 
 
-rows = read_file("input")
-gamma, epsilon = get_gamma_and_epsilon(rows)
-oxygen_rating, co2_rating = get_oxygen_and_co2(rows)
+def solution() -> None:
+    rows = read_file("input", __file__)
+    gamma, epsilon = get_gamma_and_epsilon(rows)
+    oxygen_rating, co2_rating = get_oxygen_and_co2(rows)
 
 
-print(f"solution 1: {get_power_consumption(gamma, epsilon)}")
-print(f"solution 2: {get_life_support_rating(oxygen_rating, co2_rating)}")
+    print(f"solution 1: {get_power_consumption(gamma, epsilon)}")
+    print(f"solution 2: {get_life_support_rating(oxygen_rating, co2_rating)}")

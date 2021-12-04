@@ -5,13 +5,14 @@ from typing import Sequence
 
 from aoc.utils import read_file
 
+
 def get_count_increase(depths: Sequence[int]) -> int:
     """Returns the count of depth increase measurements"""
     count = 0
     for i in range(len(depths)-1):
         if depths[i] < depths[i+1]:
             count += 1
-    
+
     return count
 
 
@@ -27,10 +28,9 @@ def get_count_window_increase(depths: Sequence[int]) -> int:
     return count
 
 
-breakpoint()
+def solution() -> None:
+    file_data = read_file("input", __file__)
+    data = [int(value) for value in file_data]
 
-file_data = read_file("aoc/day1/input")
-data = [int(value) for value in file_data]
-
-print(f"solution 1: {get_count_increase(data)}")
-print(f"solution 2: {get_count_window_increase(data)}")
+    print(f"solution 1: {get_count_increase(data)}")
+    print(f"solution 2: {get_count_window_increase(data)}")

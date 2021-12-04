@@ -1,13 +1,10 @@
 import __main__
 
 from typing import Sequence, Tuple
-
 from math import prod
 
+from aoc.utils import read_file
 
-def read_file(filename: str) -> Sequence[str]:
-    with open(filename, 'r') as file_stream:
-        return [line.strip() for line in file_stream.readlines()]
 
 def get_new_position(commands: Tuple[str,int]) -> Tuple[int, int]:
     x = y = 0
@@ -35,12 +32,13 @@ def get_position_from_aim(commands: Tuple[str,int]) -> Tuple[int,int]:
     return x, y
 
 
-file_rows = read_file("./input")
-split_commands = [row.split() for row in file_rows]
-commands = [(c[0], int(c[1])) for c in split_commands]
+def solution() -> None:
+    file_rows = read_file("input", __file__)
+    split_commands = [row.split() for row in file_rows]
+    commands = [(c[0], int(c[1])) for c in split_commands]
 
-position_simple = get_new_position(commands)
-position_from_aim = get_position_from_aim(commands)
+    position_simple = get_new_position(commands)
+    position_from_aim = get_position_from_aim(commands)
 
-print(f"solution 1: {prod(position_simple)}")
-print(f"solution 2: {prod(position_from_aim)}")
+    print(f"solution 1: {prod(position_simple)}")
+    print(f"solution 2: {prod(position_from_aim)}")
