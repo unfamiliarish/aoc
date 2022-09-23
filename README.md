@@ -11,11 +11,13 @@ aoc
 │   └── day#  
 |   ...
 ├── README.md  
+├── Makefile  
 └── utils.py  
 ```
 
-The `utils.py` at project root is the master utils file. This is copied into each `day#` directory to make imports simpler. 
+The `utils.py` at project root is the master version.
+It is copied into individual `day#` directories to make imports simpler. 
 
-Then each year has its own directory, and under that are directories holding code for each day. 
+Each year has its own directory, and under those are directories holding code for each day. 
 
-Any imports are for packages or other files within a `day#` directory.
+Imports within a `day#` solution directory are exclusively packages or other files within that directory.
