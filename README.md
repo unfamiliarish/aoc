@@ -1,21 +1,21 @@
-# Advent of Code
-This is my needlessly complicated scaffolding for advent of code. 
+# Advent of Code 
 
-I know most folks do quick and dirty scripting for AoC, but I guess I insisted on making a package with importable modules and functions. I'm happy with this approach, and that's all that matters :) 
+## File Structure 
+```
+aoc  
+├── yyyy  
+│   ├── day#  
+│   └── day#  
+├── yyyy 
+│   ├── day#  
+│   └── day#  
+|   ...
+├── README.md  
+└── utils.py  
+```
 
-## How to run 
-Add the root-level `aoc/` folder to your `PYTHONPATH` env var, I did this in my `~/.bash_profile` with:
-```
-export PYTHONPATH=$PYTHONPATH:/path/to/aoc
-```
+The `utils.py` at project root is the master utils file. This is copied into each `day#` directory to make imports simpler. 
 
-In the root-level `aoc/` folder, run:
-```
-python aoc [day number]
-```
-where `day number` is replaced with 1-25, depending on which day of the advent calendar you want to execute. 
+Then each year has its own directory, and under that are directories holding code for each day. 
 
-For example, the following runs the code for day 3:
-```
-python aoc 3
-```
+Any imports are for packages or other files within a `day#` directory.
