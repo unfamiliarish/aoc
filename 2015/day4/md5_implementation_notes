@@ -1,0 +1,35 @@
+references
+https://en.wikipedia.org/wiki/MD5#Implementations
+https://www.educba.com/md5-alogrithm/
+
+MD5 hash algorithm
+
+calc bit length of input
+calc (bit_len + padding_bits_len) = 512*i -64
+loop through multiples of 512, to find the smallest value
+
+once padding bits len found, append 1 and then the remaining bits as 0s
+to the end of the original input
+
+then add 64 bits to the end of the modified input that contain the length
+of the original message, mod 2^64.  so if len=16, then append 00..001000
+
+initialize md5 buffer
+
+A = 0x67452301
+B = 0xEFCDAB89
+C = 0x98BADCFE
+D = 0x10325476
+
+have to use python bitwise ops on integers
+https://wiki.python.org/moin/BitwiseOperators
+
+to get bits in a particular range in python, just and the int with
+the integer with bits you want to preserve
+bit from 28th spot (0-index) -> num >> 28 & 1
+bits from 4th and 5th spots -> num >> 4 & 3
+etc
+
+^ jk not necessary to implement myself. i can use hashlib.md5('my string')
+
+i might still try implementing myself later, but not now
