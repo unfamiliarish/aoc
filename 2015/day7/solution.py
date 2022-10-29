@@ -34,33 +34,46 @@ def parse_instruction(inst: str) -> tuple:
 
 
 def connect_wires(instructions: list[str]) -> dict[str, int]:
-    wires: dict[str, int] = {}
+    circuit: dict[str, int] = {}
     while instructions:
         inst = instructions.pop(0)
         parts = parse_instruction(inst)
 
         try:
             op = parts[0]
-            register = parts[-1]
+            output_wire = parts[-1]
             input = list(parts[1:-1])
 
             for i, val in enumerate(input):
                 if type(val) is str:
-                    input[i] = wires[val]
+                    input[i] = circuit[val]
 
-            wires[register] = ops[op](*input) & 0xFFFF
+            circuit[output_wire] = ops[op](*input) & 0xFFFF
 
         except Exception:
             instructions.append(inst)
 
-    return wires
+    return circuit
 
 
 def assemble_circuit(filename) -> int:
     instructions = utils.import_file(filename)
-    circuit = connect_wires(instructions)
+    circuit = connect_wires(instructions.copy())
 
     return circuit["a"]
+
+
+def assemble_circuit_override_b(filename) -> int:
+    instructions = utils.import_file(filename)
+    circuit = connect_wires(instructions.copy())
+
+    new_instructions = instructions.copy()
+    new_instructions.remove("19138 -> b")
+    new_instructions.append(f"{circuit['a']} -> b")
+
+    new_circuit = connect_wires(new_instructions)
+
+    return new_circuit["a"]
 
 
 assert ops["ASSIGN"](5) == 5
@@ -97,4 +110,7 @@ wires_sm = {
 assert connect_wires(insts) == wires_sm
 
 a_value = assemble_circuit("input")
-print(a_value)
+print(f"part 1: {a_value}")
+
+b_value = assemble_circuit_override_b("input")
+print(f"part 2: {b_value}")
