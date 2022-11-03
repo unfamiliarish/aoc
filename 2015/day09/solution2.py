@@ -1,4 +1,5 @@
 from collections import defaultdict, namedtuple
+from time import sleep
 
 import utils
 
@@ -36,22 +37,29 @@ def find_shortest_path_for_node(
 
     weights = [float('inf')]
     for next_node in nodes_to_visit:
-        weights.append(
-            graph[curr_node][next_node]
-            + find_shortest_path_for_node(
-                next_node, graph, nodes_to_visit - {next_node}
-            )
-        )
+        if graph[curr_node][next_node] == float('inf'):
+            return float('inf')
 
+        print(f"before. curr node: {curr_node}, next node: {next_node}")
+        next_node_weight = find_shortest_path_for_node(
+            next_node, graph, nodes_to_visit - {next_node}
+        )
+        weight = graph[curr_node][next_node] + next_node_weight
+        print(
+            f"after. curr node: {curr_node}, next node: {next_node}, weight: {next_node_weight}"
+        )
+        weights.append(weight)
+
+    print(f"curr node: {curr_node}, weights: {weights}")
     return min(weights)
 
 
 def find_shortest_path_in_graph(graph: dict, vertices: set) -> float:
     weights = [float('inf')]
     for node in graph.keys():
-        weights.append(
-            find_shortest_path_for_node(node, graph, vertices - {node})
-        )  # noqa
+        print(f"curr node: {node}, weights: {weights}")
+        weight = find_shortest_path_for_node(node, graph, vertices - {node})
+        weights.append(weight)  # noqa
 
     return min(weights)
 
@@ -60,10 +68,11 @@ def main(filename) -> float:
     file_lines = utils.import_file(filename)
     links = parse_lines(file_lines)
     graph, vertices = build_graph(links)
+    print(graph)
 
     return find_shortest_path_in_graph(graph, vertices)
 
 
 print(main("input_missing_edges"))
 
-print(main("input"))
+# print(main("input"))
