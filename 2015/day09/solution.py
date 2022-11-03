@@ -56,9 +56,9 @@ class Graph:
 
         distances = [float('inf')]
         for city in self.vertices:
-            distances.append(self.TSP_for_city(city))
+            city_min_dist = self.TSP_for_city(city)
+            distances.append(city_min_dist)
 
-        # breakpoint()
         return min(distances)
 
 
@@ -70,32 +70,31 @@ def find_shortest_route(filename: str) -> float:
     return graph.find_shortest_route()
 
 
-# build graph
-raw_connections = utils.import_file("input_TSP_undirected")
-g = Graph([parse_connection(c) for c in raw_connections])
-assert g.graph == {
-    '1': {'2': 10, '3': 15, '4': 20},
-    '2': {'1': 10, '3': 35, '4': 25},
-    '3': {'1': 15, '2': 35, '4': 30},
-    '4': {'1': 20, '2': 25, '3': 30},
-}
-assert g.vertices == {'1', '2', '3', '4'}
+# # build graph
+# raw_connections = utils.import_file("input_TSP_undirected")
+# g = Graph([parse_connection(c) for c in raw_connections])
+# assert g.graph == {
+#     '1': {'2': 10, '3': 15, '4': 20},
+#     '2': {'1': 10, '3': 35, '4': 25},
+#     '3': {'1': 15, '2': 35, '4': 30},
+#     '4': {'1': 20, '2': 25, '3': 30},
+# }
+# assert g.vertices == {'1', '2', '3', '4'}
 
-# complete undirected graph
-assert g.TSP_for_city("1") == 65
+# # complete undirected graph
+# assert g.TSP_for_city("1") == 65
 
 # complete directed graph
 raw_connections = utils.import_file("input_TSP_directed")
 g = Graph([parse_connection(c) for c in raw_connections])
 val = g.TSP_for_city("1") == 29
 
-# directed graph missing edges
-assert find_shortest_route("input_missing_edges") == 605
+# # directed graph missing edges
+# assert find_shortest_route("input_missing_edges") == 605
 
-# null graph
-g = Graph()
-assert g.find_shortest_route() == 0
-
+# # null graph
+# g = Graph()
+# assert g.find_shortest_route() == 0
 
 # 458 too high
 part_1_result = find_shortest_route("input")
