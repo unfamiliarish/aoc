@@ -20,6 +20,7 @@ def look_and_say(input: str) -> str:
 
 def find_look_and_say_length(look_and_say_str: str, iterations: int) -> int:
     for i in range(iterations):
+        print(i)
         look_and_say_str = look_and_say(look_and_say_str)
 
     return len(look_and_say_str)
