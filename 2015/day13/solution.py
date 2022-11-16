@@ -61,6 +61,29 @@ def find_max_happiness(filename: str) -> int:
     )
 
 
+def add_me_to_happiness_graph(happiness_graph: dict) -> None:
+    people_at_table = set(happiness_graph.keys())
+    for person in people_at_table:
+        happiness_graph["me"][person]
+        happiness_graph[person]["me"]
+
+    return
+
+
+def find_max_happiness_incl_me(filename: str) -> int:
+    rows = utils.import_file(filename)
+    all_happiness = [parse_row_to_happiness(r) for r in rows]
+
+    happiness_graph = build_undirected_happiness_graph(all_happiness)
+    add_me_to_happiness_graph(happiness_graph)
+
+    people_to_seat = set(happiness_graph.keys())
+    first_seated = people_to_seat.pop()
+    return recurse_find_max_happiness(
+        first_seated, people_to_seat, first_seated, happiness_graph
+    )
+
+
 assert parse_row_to_happiness(
     "Alice would gain 54 happiness units by sitting next to Bob."
 ) == ("Alice", "Bob", 54)
@@ -68,3 +91,6 @@ assert find_max_happiness("input_sm") == 330
 
 part_1_result = find_max_happiness("input")
 print(f"part 1: {part_1_result}")
+
+part_2_result = find_max_happiness_incl_me("input")
+print(f"part 2: {part_2_result}")
