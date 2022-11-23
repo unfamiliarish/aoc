@@ -14,8 +14,10 @@
 """
 
 
+from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass, field
+import math
 
 import utils
 
@@ -69,6 +71,13 @@ class Cookie:
     flavor: int = 0
     texture: int = 0
     calories: int = 0
+
+    @classmethod
+    def build_from_ingredients(cls, ingredients: dict) -> "Cookie":
+        cookie = cls(ingredients)
+        cookie.calc_property_values()
+
+        return cookie
 
     @property
     def score(self) -> int:
@@ -133,6 +142,18 @@ class Cookie:
             calories=self.calories,
         )
 
+    def combine_cookies(self, cookie: "Cookie") -> "Cookie":
+        combined_ingredients: dict = defaultdict(lambda: defaultdict(int))
+        for name, ingr in self.ingredients.items():
+            combined_ingredients[name]["ingredient"] = ingr["ingredient"]
+            combined_ingredients[name]["num_tsp"] += ingr["num_tsp"]
+        for name, ingr in cookie.ingredients.items():
+            combined_ingredients[name]["ingredient"] = ingr["ingredient"]
+            combined_ingredients[name]["num_tsp"] += ingr["num_tsp"]
+
+        # # breakpoint()
+        return Cookie.build_from_ingredients(combined_ingredients)
+
 
 def mix_best_cookie(
     ingredients: list[Ingredient], num_tsp: int, first_max: bool = True
@@ -146,7 +167,7 @@ def mix_best_cookie(
             new_cookie = prev_cookie.copy()
             if (
                 prev_cookie.has_zero_properties()
-                and not new_cookie.ingredient_fills_zero(ingr)
+                and not prev_cookie.ingredient_fills_zero(ingr)
             ):
                 continue
 
@@ -158,6 +179,49 @@ def mix_best_cookie(
             ):
                 best_cookie = new_cookie
 
+        cookies.append(best_cookie)
+
+    # breakpoint()
+    return cookies[num_tsp]
+
+
+def mix_best_cookie_exactly_500_cals(
+    ingredients: list[Ingredient], num_tsp: int, first_max: bool = True
+) -> Cookie:
+    cookies: list[Cookie] = [Cookie()]
+
+    for i in range(1, num_tsp + 1):
+        prev_cookie = cookies[i - 1]
+        best_cookie = Cookie()  # best is blank cookie to start, always add 1 tsp
+        for ingr in ingredients:
+            if (
+                prev_cookie.has_zero_properties()
+                and not prev_cookie.ingredient_fills_zero(ingr)
+            ):
+                continue
+
+            # breakpoint()
+            if prev_cookie.calories + ingr.calories > 5 * i:
+                calorie_diff = math.ceil(ingr.calories / 5)
+                if i - calorie_diff < 0:
+                    continue
+
+                knapsack_cookie = cookies[i - calorie_diff].copy()
+                knapsack_cookie.add_ingredient(ingr)
+
+            else:
+                knapsack_cookie = prev_cookie.copy()
+                knapsack_cookie.add_ingredient(ingr)
+
+            if (
+                best_cookie.score == 0
+                or (first_max and knapsack_cookie.score > best_cookie.score)
+                or (not first_max and knapsack_cookie.score >= best_cookie.score)
+            ):
+                # breakpoint()
+                best_cookie = knapsack_cookie
+
+        # breakpoint()
         cookies.append(best_cookie)
 
     return cookies[num_tsp]
@@ -173,6 +237,20 @@ def determine_best_cookie_score(filename: str, num_tsp: int) -> int:
     return max(first_max_cookie.score, last_max_cookie.score)
 
 
+def determine_best_cookie_score_exactly_500_cals(filename: str, num_tsp: int) -> int:
+    rows = utils.import_file(filename)
+    ingredients: list[Ingredient] = [parse_cookie_ingredient(r) for r in rows]
+
+    first_max_cookie = mix_best_cookie_exactly_500_cals(
+        ingredients, num_tsp, first_max=True
+    )
+    last_max_cookie = mix_best_cookie_exactly_500_cals(
+        ingredients, num_tsp, first_max=False
+    )
+
+    return max(first_max_cookie.score, last_max_cookie.score)
+
+
 # butterscotch = Ingredient("Butterscotch", -1, -2, 6, 3, 8)
 
 # assert (
@@ -181,8 +259,14 @@ def determine_best_cookie_score(filename: str, num_tsp: int) -> int:
 #     )
 #     == butterscotch
 # )
-# assert determine_best_cookie_score("input_sm", 100) == 62842880
+assert determine_best_cookie_score("input_sm", 100) == 62842880
 
 # 13872000 too low
 part_1_result = determine_best_cookie_score("input", 100)
 print(f"part 1: {part_1_result}")
+
+# assert determine_best_cookie_score_exactly_500_cals("input_sm", 100) == 57600000
+
+# 32503680 too high
+part_2_result = determine_best_cookie_score_exactly_500_cals("input", 100)
+print(f"part 2: {part_2_result}")
