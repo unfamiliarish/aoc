@@ -18,7 +18,9 @@ from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass, field
 import math
+from operator import attrgetter
 from pprint import pprint
+from typing import Any
 
 import utils
 
@@ -43,6 +45,10 @@ def parse_cookie_ingredient(input: str) -> Ingredient:
     calories = int(properties[4].split(" calories ")[1])
 
     return Ingredient(name, capacity, durability, flavor, texture, calories)
+
+
+# maps from ingredient tuple to Cookie with those ingredients
+best_cookie_lookup: dict[tuple, "Cookie"] = defaultdict(lambda: Cookie())
 
 
 @dataclass
@@ -92,14 +98,28 @@ class Cookie:
     def score(self) -> int:
         return self.capacity * self.durability * self.flavor * self.texture
 
-    def add_ingredient(self, ingredient: Ingredient) -> None:
-        if ingredient.name in self.ingredients:
-            self.ingredients[ingredient.name]["num_tsp"] += 1
-        else:
-            self.ingredients[ingredient.name] = {"num_tsp": 1, "ingredient": ingredient}
+    @property
+    def ingredients_tuple(self) -> tuple[Any, ...]:
+        ingredient_names = list(self.ingredients.keys())
+        ingredient_names.sort()
 
-        self.calc_property_values()
-        return
+        ingredients = (self.ingredients[ingr] for ingr in ingredient_names)
+
+        return tuple(ingr["num_tsp"] for ingr in ingredients)
+
+    def add_ingredient(self, ingredient: Ingredient) -> "Cookie":
+        cookie_copy = self.copy()
+        if ingredient.name in cookie_copy.ingredients:
+            cookie_copy.ingredients[ingredient.name]["num_tsp"] += 1
+        else:
+            cookie_copy.ingredients[ingredient.name] = {
+                "num_tsp": 1,
+                "ingredient": ingredient,
+            }
+
+        cookie_copy.calc_property_values()
+
+        return cookie_copy
 
     def has_zero_properties(self, excl_calories: bool = True) -> list[str]:
         properties = list(self.__dict__.keys())
@@ -180,14 +200,13 @@ def mix_best_cookie(
         prev_cookie = cookies[i - 1]
         best_cookie = Cookie()  # best is blank cookie to start, always add 1 tsp
         for ingr in ingredients:
-            new_cookie = prev_cookie.copy()
             if (
                 prev_cookie.has_zero_properties()
                 and not prev_cookie.ingredient_fills_zero(ingr)
             ):
                 continue
 
-            new_cookie.add_ingredient(ingr)
+            new_cookie = prev_cookie.add_ingredient(ingr)
             if (
                 best_cookie.score == 0
                 or (first_max and new_cookie.score > best_cookie.score)
@@ -200,61 +219,37 @@ def mix_best_cookie(
     return cookies[num_tsp]
 
 
-def mix_best_cookie_exactly_500_cals(
-    ingredients: list[Ingredient], first_max: bool = True
+def mix_best_500_cal_cookie(
+    cookie, Cookie, ingredients: list[Ingredient], remaining_tsp: int
 ) -> Cookie:
-    # two contrainsts: allowed num of tsp = 100, calories = 500
-    #
-    # due to trouble with scoring, changing algorithm from knapsack
-    # has cookies list containing sets of Cookies, where all cookies in
-    # that set have calories eq to the list index
-    #
-    # each loop adds ingredients to previous cookies, making new cookies
-    # with exact calories
+    if remaining_tsp == 0:
+        return cookie
 
-    cookies: list = [Cookie()]
-
-    for i in range(1, 501):
-        print(i)
-        best_cookie = Cookie()
-        for ingr in ingredients:
-            # breakpoint()
-            if i - ingr.calories < 0:
-                continue
-
-            # breakpoint()
-            knapsack_cookie: Cookie = cookies[i - ingr.calories]
-            if knapsack_cookie is None:
-                continue
-
-            if (
-                knapsack_cookie.has_zero_properties()
-                and not knapsack_cookie.ingredient_fills_zero(ingr)
-            ):
-                continue
-
-            cookie = knapsack_cookie.copy()
-            cookie.add_ingredient(ingr)
-            # breakpoint()
-            if cookie.calories != i or cookie.num_tsp > 100:
-                continue
-
-            if cookie.score >= best_cookie.score:
-                best_cookie = cookie
-
-        # breakpoint()
-        if best_cookie != Cookie():
-            cookies.append(best_cookie)
+    cookies: list[Cookie] = [cookie.add_ingr(ingr) for ingr in ingredients]  # type: ignore
+    best_cookies = []
+    for cookie in cookies:
+        if cookie.ingredient_tuple in best_cookie_lookup:
+            best_cookies.append(best_cookie_lookup[cookie.ingredient_tuple])
         else:
-            cookies.append(None)
+            best_cookies.append(mix_best_500_cal_cookie())
+
+    recurse_cookie: Cookie = mix_best_500_cal_cookie(ingredients, remaining_tsp - 1)
+    if recurse_cookie.ingredients_tuple in best_cookie_lookup:
+        return best_cookie_lookup[recurse_cookie.ingredients_tuple]
+
+    cookies = []
+    for ingr in ingredients:
+        cookie = recurse_cookie.copy()
+        cookie.add_ingredient(ingr)
+        cookies.append(cookie)
+
+    if all(cookie.score == 0 for cookie in cookies):
+        for cookie in cookies:
+            best_cookie_lookup[cookie.ingredients_tuple] = cookie
 
     breakpoint()
-    valid_cookies = [cookie for cookie in cookies if cookie.calories == 100]
-
-    best_cookie = Cookie()
-    for cookie in valid_cookies:
-        if cookie.score >= best_cookie.score:
-            best_cookie = cookie
+    best_cookie = max(cookies, key=attrgetter("score"))
+    best_cookie_lookup[best_cookie.ingredients_tuple] = best_cookie
 
     return best_cookie
 
@@ -269,11 +264,11 @@ def determine_best_cookie_score(filename: str, num_tsp: int) -> int:
     return max(first_max_cookie.score, last_max_cookie.score)
 
 
-def determine_best_cookie_score_exactly_500_cals(filename: str, num_tsp: int) -> int:
+def determine_best_500_cal_cookie_score(filename: str, num_tsp: int) -> int:
     rows = utils.import_file(filename)
     ingredients: list[Ingredient] = [parse_cookie_ingredient(r) for r in rows]
 
-    best_cookie = mix_best_cookie_exactly_500_cals(ingredients, first_max=True)
+    best_cookie = mix_best_500_cal_cookie(ingredients, num_tsp)
     breakpoint()
     return best_cookie.score
 
@@ -292,17 +287,13 @@ butterscotch = Ingredient("Butterscotch", -1, -2, 6, 3, 8)
 # part_1_result = determine_best_cookie_score("input", 100)
 # print(f"part 1: {part_1_result}")
 
-# assert determine_best_cookie_score_exactly_500_cals("input_sm", 100) == 57600000
+assert determine_best_500_cal_cookie_score("input_sm", 100) == 57600000
 
 # 32503680 too high
 # 9409920 too low
-part_2_result = determine_best_cookie_score_exactly_500_cals("input", 100)
+# part_2_result = determine_best_cookie_score_exactly_500_cals("input", 100)
 # print(f"part 2: {part_2_result}")
 
 
-butterscotch = Ingredient("Butterscotch", -1, -2, 6, 3, 8)
-
-sprinkles = Ingredient("Sprinkles", 5, -1, 0, 0, 5)
-pb = Ingredient("PeanutButter", -1, 3, 0, 0, 1)
-frosting = Ingredient("Frosting", 0, -1, 4, 0, 6)
-sugar = Ingredient("Sugar", -1, 0, 0, 2, 8)
+breakpoint()
+"hi"
