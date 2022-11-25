@@ -14,13 +14,8 @@
 """
 
 
-from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass, field
-import math
-from operator import attrgetter
-from pprint import pprint
-from typing import Any
 
 import utils
 
@@ -45,10 +40,6 @@ def parse_cookie_ingredient(input: str) -> Ingredient:
     calories = int(properties[4].split(" calories ")[1])
 
     return Ingredient(name, capacity, durability, flavor, texture, calories)
-
-
-# maps from ingredient tuple to Cookie with those ingredients
-best_cookie_lookup: dict[tuple, "Cookie"] = defaultdict(lambda: Cookie())
 
 
 @dataclass
@@ -79,33 +70,9 @@ class Cookie:
     texture: int = 0
     calories: int = 0
 
-    @classmethod
-    def build_from_ingredients(cls, ingredients: dict) -> "Cookie":
-        cookie = cls(ingredients)
-        cookie.calc_property_values()
-
-        return cookie
-
-    @property
-    def num_tsp(self) -> int:
-        num_tsp = 0
-        for ingr in self.ingredients.values():
-            num_tsp += ingr["num_tsp"]
-
-        return num_tsp
-
     @property
     def score(self) -> int:
         return self.capacity * self.durability * self.flavor * self.texture
-
-    @property
-    def ingredients_tuple(self) -> tuple[Any, ...]:
-        ingredient_names = list(self.ingredients.keys())
-        ingredient_names.sort()
-
-        ingredients = (self.ingredients[ingr] for ingr in ingredient_names)
-
-        return tuple(ingr["num_tsp"] for ingr in ingredients)
 
     def add_ingredient(self, ingredient: Ingredient) -> "Cookie":
         cookie_copy = self.copy()
@@ -172,24 +139,6 @@ class Cookie:
             calories=self.calories,
         )
 
-    def __eq__(self, other) -> bool:
-        if not isinstance(other, type(self)):
-            return NotImplemented
-
-        self_ingr_names = set(self.ingredients.keys())
-        cookie_ingr_names = set(other.ingredients.keys())
-        ingredient_names = self_ingr_names.union(cookie_ingr_names)
-
-        for ingr_name in ingredient_names:
-            if ingr_name not in self.ingredients or ingr_name not in other.ingredients:
-                return False
-            if (
-                self.ingredients[ingr_name]["num_tsp"]
-                != other.ingredients[ingr_name]["num_tsp"]
-            ):
-                return False
-        return True
-
 
 def mix_best_cookie(
     ingredients: list[Ingredient], num_tsp: int, first_max: bool = True
@@ -222,36 +171,7 @@ def mix_best_cookie(
 def mix_best_500_cal_cookie(
     cookie, Cookie, ingredients: list[Ingredient], remaining_tsp: int
 ) -> Cookie:
-    if remaining_tsp == 0:
-        return cookie
-
-    cookies: list[Cookie] = [cookie.add_ingr(ingr) for ingr in ingredients]  # type: ignore
-    best_cookies = []
-    for cookie in cookies:
-        if cookie.ingredient_tuple in best_cookie_lookup:
-            best_cookies.append(best_cookie_lookup[cookie.ingredient_tuple])
-        else:
-            best_cookies.append(mix_best_500_cal_cookie())
-
-    recurse_cookie: Cookie = mix_best_500_cal_cookie(ingredients, remaining_tsp - 1)
-    if recurse_cookie.ingredients_tuple in best_cookie_lookup:
-        return best_cookie_lookup[recurse_cookie.ingredients_tuple]
-
-    cookies = []
-    for ingr in ingredients:
-        cookie = recurse_cookie.copy()
-        cookie.add_ingredient(ingr)
-        cookies.append(cookie)
-
-    if all(cookie.score == 0 for cookie in cookies):
-        for cookie in cookies:
-            best_cookie_lookup[cookie.ingredients_tuple] = cookie
-
-    breakpoint()
-    best_cookie = max(cookies, key=attrgetter("score"))
-    best_cookie_lookup[best_cookie.ingredients_tuple] = best_cookie
-
-    return best_cookie
+    pass
 
 
 def determine_best_cookie_score(filename: str, num_tsp: int) -> int:
@@ -264,36 +184,16 @@ def determine_best_cookie_score(filename: str, num_tsp: int) -> int:
     return max(first_max_cookie.score, last_max_cookie.score)
 
 
-def determine_best_500_cal_cookie_score(filename: str, num_tsp: int) -> int:
-    rows = utils.import_file(filename)
-    ingredients: list[Ingredient] = [parse_cookie_ingredient(r) for r in rows]
-
-    best_cookie = mix_best_500_cal_cookie(ingredients, num_tsp)
-    breakpoint()
-    return best_cookie.score
-
-
 butterscotch = Ingredient("Butterscotch", -1, -2, 6, 3, 8)
 
-# assert (
-#     parse_cookie_ingredient(
-#         "Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8"
-#     )
-#     == butterscotch
-# )
-# assert determine_best_cookie_score("input_sm", 100) == 62842880
+assert (
+    parse_cookie_ingredient(
+        "Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8"
+    )
+    == butterscotch
+)
+assert determine_best_cookie_score("input_sm", 100) == 62842880
 
-# # 13872000 too low
-# part_1_result = determine_best_cookie_score("input", 100)
-# print(f"part 1: {part_1_result}")
-
-assert determine_best_500_cal_cookie_score("input_sm", 100) == 57600000
-
-# 32503680 too high
-# 9409920 too low
-# part_2_result = determine_best_cookie_score_exactly_500_cals("input", 100)
-# print(f"part 2: {part_2_result}")
-
-
-breakpoint()
-"hi"
+# 13872000 too low
+part_1_result = determine_best_cookie_score("input", 100)
+print(f"part 1: {part_1_result}")
