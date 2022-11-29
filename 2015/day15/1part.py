@@ -16,6 +16,7 @@
 
 from copy import deepcopy
 from dataclasses import dataclass, field
+from itertools import permutations
 
 import utils
 
@@ -166,12 +167,6 @@ def mix_best_cookie(
         cookies.append(best_cookie)
 
     return cookies[num_tsp]
-
-
-def mix_best_500_cal_cookie(
-    cookie, Cookie, ingredients: list[Ingredient], remaining_tsp: int
-) -> Cookie:
-    pass
 
 
 def determine_best_cookie_score(filename: str, num_tsp: int) -> int:
