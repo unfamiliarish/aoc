@@ -1,5 +1,3 @@
-import re
-
 import utils
 
 
@@ -9,7 +7,7 @@ def parse_sue_data(sue_str: str) -> dict:
     split = sue_str.split(": ")
     sue_data["number"] = int(split[0].split(" ")[1])
 
-    properties = []
+    properties: list = []
     for s in split[1:]:
         if ", " in s:
             properties = properties + s.split(", ")
@@ -39,15 +37,13 @@ def sue_matches_with_ranges(sue: dict, sue_info: dict) -> bool:
             continue
 
         if key == "cats" or key == "trees":
-            if sue_info[key] >= val:
+            if val <= sue_info[key]:  # should be gt
                 return False
-            return True
         elif key == "pomeranians" or key == "goldfish":
-            if sue_info[key] <= val:
+            if val >= sue_info[key]:  # should be lt
                 return False
-            return True
 
-        if key not in sue_info or sue_info[key] != val:
+        elif key not in sue_info or sue_info[key] != val:
             return False
 
     return True
@@ -62,7 +58,7 @@ def find_matching_sue_number(
     sues_raw = utils.import_file(sues_file)
     sues = [parse_sue_data(raw_sue) for raw_sue in sues_raw]
 
-    matching_sue = {}
+    matching_sue = {"number": -1}
     for sue in sues:
         if (not ranges and sue_matches(sue, sue_info)) or (
             ranges and sue_matches_with_ranges(sue, sue_info)
@@ -73,11 +69,12 @@ def find_matching_sue_number(
 
 
 part_1_result = find_matching_sue_number("sue_info.json", "input")
-assert find_matching_sue_number("sue_info.json", "input") == 40
+assert part_1_result == 40
 print(f"part 1: {part_1_result}")
 
 # 496 too high
 part_2_result = find_matching_sue_number("sue_info.json", "input", ranges=True)
+assert part_2_result == 241
 print(f"part 2: {part_2_result}")
 
 sue_info = {
