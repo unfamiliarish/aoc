@@ -91,11 +91,15 @@ sue_info = {
 }
 
 assert (
-    sue_matches({'number': 1, 'goldfish': 9, 'cars': 0, 'samoyeds': 9}, sue_info)
+    sue_matches(
+        {'number': 1, 'goldfish': 9, 'cars': 0, 'samoyeds': 9}, sue_info
+    )  # too long
 ) is False
 
 assert (
-    sue_matches({'number': 1, 'goldfish': 5, 'cars': 2, 'samoyeds': 2}, sue_info)
+    sue_matches(
+        {'number': 1, 'goldfish': 5, 'cars': 2, 'samoyeds': 2}, sue_info
+    )  # too long
 ) is True
 
 # all match
