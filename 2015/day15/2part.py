@@ -1,6 +1,5 @@
 from collections import namedtuple
-from itertools import permutations
-from typing import Sequence
+from itertools import product
 
 import utils
 
@@ -48,11 +47,13 @@ def determine_best_500_cal_cookie_score(filename: str, num_tsp: int) -> int:
 
     recipes = [
         teaspoons
-        for teaspoons in permutations(range(0, num_tsp + 1), len(ingredients))
+        for teaspoons in product(range(0, num_tsp + 1), repeat=len(ingredients))
         if sum(teaspoons) == num_tsp
     ]
 
+    print(f"{len(recipes)} recipes printed")
     cookies = [list(zip(recipe, ingredients)) for recipe in recipes]
+    print("cookies baked")
 
     best_score = 0
     for cookie in cookies:
@@ -61,6 +62,7 @@ def determine_best_500_cal_cookie_score(filename: str, num_tsp: int) -> int:
 
         score = calc_score(cookie)
         if score > best_score:
+            print("tastier cookie found")
             best_score = score
 
     return best_score
@@ -68,7 +70,8 @@ def determine_best_500_cal_cookie_score(filename: str, num_tsp: int) -> int:
 
 assert determine_best_500_cal_cookie_score("input_sm", 100) == 57600000
 
-# 19150560 is too low
+# 19150560 is too high
+# 11171160 <- correct answer
 # 11162880 is too low
 # 13882464 incorrect (value when excluding the 500 cal constraint)
 part_2_result = determine_best_500_cal_cookie_score("input", 100)
