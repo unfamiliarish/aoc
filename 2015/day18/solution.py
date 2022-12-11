@@ -51,6 +51,12 @@ class LightGrid:
 
         return new_lights_grid
 
+    def set_corners_on(self) -> None:
+        self.lights[0][0] = "#"
+        self.lights[0][-1] = "#"
+        self.lights[-1][0] = "#"
+        self.lights[-1][-1] = "#"
+
     def count_on_lights(self) -> int:
         count = 0
         lights = self.lights
@@ -73,6 +79,23 @@ def count_lights_on(filename, num_steps: int) -> int:
     return light_grid.count_on_lights()
 
 
+def count_on_lights_with_stuck_corners(filename, num_steps: int) -> int:
+    lights = utils.import_file(filename)
+
+    light_grid = LightGrid(lights)
+    light_grid.set_corners_on()
+    for _ in range(num_steps):
+        new_grid_state = light_grid.get_new_state()
+        light_grid.lights = new_grid_state
+        light_grid.set_corners_on()
+
+    return light_grid.count_on_lights()
+
+
 assert count_lights_on("input_sm", 4) == 4
 part_1_result = count_lights_on("input", 100)
 print(f"part 1: {part_1_result}")
+
+assert count_on_lights_with_stuck_corners("input_sm", 5) == 17
+part_2_result = count_on_lights_with_stuck_corners("input", 100)
+print(f"part 2: {part_2_result}")
