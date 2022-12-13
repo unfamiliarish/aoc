@@ -1,4 +1,5 @@
 from collections import defaultdict
+from pprint import pprint
 
 import utils
 
@@ -76,17 +77,102 @@ def get_num_distinct_molecules(filename: str) -> int:
     return len(distinct_molecules)
 
 
-sm_input = utils.import_file("input_sm")
+# data structures:
+# - molecule -> depth
+# - depth -> all poss molecules
+
+# if molecule already exists in first strucutre, do not add it to new depth
+
+
+# start structures with
+# {"e": 0} <- not defaultdict
+# {0: ["e"]} <- defaultdict(list), so that at depth we can just append
+
+# i don't want to do depth-first
+# i want to do breadth-first
+
+# for all molecules at current depth, calculate the new molecules with the molecule map
+# and store them accordingly
+
+
+def steps_to_make_medicine(goal_molecule: str, molecule_map: dict[str, list[str]]):
+    """example dictionaries below for illustration,
+    not accuracy between each other
+
+    molecule_shortest_depth = {
+        "a":2,
+        "b":12,
+        "c":5,
+        etc
+    }
+    molecules_at_depth = {
+        0: ["e"],
+        1: ["a","b"],
+        2: ["c","d","e","f"],
+        etc
+    }
+    """
+
+    molecules_at_depth = defaultdict(list)
+
+    molecule_shortest_depth = {"e": 0}
+    molecules_at_depth[0].append("e")
+
+    curr_depth = 0
+    while goal_molecule not in molecule_shortest_depth:
+        print(curr_depth)
+        # pprint(molecules_at_depth[curr_depth])
+        molecules_at_curr_depth = molecules_at_depth[curr_depth]
+        # breakpoint()
+        for molecule in molecules_at_curr_depth:
+            next_depth = curr_depth + 1
+            next_depth_molecules = calc_set_of_distinct_molecules(
+                molecule, molecule_map
+            )
+            for next_molecule in next_depth_molecules:
+                # breakpoint()
+                if next_molecule == goal_molecule:
+                    return curr_depth + 1
+                if next_molecule not in molecule_shortest_depth:
+                    molecule_shortest_depth[next_molecule] = next_depth
+                    molecules_at_depth[next_depth].append(next_molecule)
+
+        if curr_depth == 1000:
+            # breakpoint()
+            5
+
+        curr_depth += 1
+
+    return molecule_shortest_depth[goal_molecule]
+
+
+def steps_to_make_medicine_in_file(filename: str) -> int:
+    raw_data = utils.import_file(filename)
+    molecule = raw_data[-1]
+    molecule_map = build_molecule_map(raw_data[:-2])
+
+    return steps_to_make_medicine(molecule, molecule_map)
+
+
+sm_input = utils.import_file("input1_sm")
 assert build_molecule_map(sm_input[:-2]) == {
     "H": ["HO", "OH"],
     "O": ["HH"],
+    "F": ["HH"],
 }
 
 assert find_all("abdbfbdhh", "bd") == [1, 5]
 assert find_all("abdbfbdhh", "w") == []
 
-assert get_num_distinct_molecules("input_sm") == 4
-assert get_num_distinct_molecules("input_sm2") == 7
+assert get_num_distinct_molecules("input1_sm") == 4
+assert get_num_distinct_molecules("input1_sm2") == 7
 
 part_1_result = get_num_distinct_molecules("input")
 print(f"part 1: {part_1_result}")
+
+
+assert steps_to_make_medicine_in_file("input2_sm") == 3
+assert steps_to_make_medicine_in_file("input2_sm2") == 6
+
+part_2_result = steps_to_make_medicine_in_file("input")
+print(f"part 2: {part_2_result}")
