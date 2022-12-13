@@ -76,8 +76,6 @@ def get_num_distinct_molecules(filename: str) -> int:
     return len(distinct_molecules)
 
 
-assert get_num_distinct_molecules("input_sm") == 4
-
 sm_input = utils.import_file("input_sm")
 assert build_molecule_map(sm_input[:-2]) == {
     "H": ["HO", "OH"],
@@ -86,6 +84,9 @@ assert build_molecule_map(sm_input[:-2]) == {
 
 assert find_all("abdbfbdhh", "bd") == [1, 5]
 assert find_all("abdbfbdhh", "w") == []
+
+assert get_num_distinct_molecules("input_sm") == 4
+assert get_num_distinct_molecules("input_sm2") == 7
 
 part_1_result = get_num_distinct_molecules("input")
 print(f"part 1: {part_1_result}")
