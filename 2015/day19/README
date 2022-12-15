@@ -1,0 +1,13 @@
+Current solution grows exponentially, no matter which direction it takes. 
+building up molecules, or going from whole molecule backwards 
+
+instead the solution involves CFGs, and I need to first study it to understand how the solution works
+
+Research and understand:
+- https://www.reddit.com/r/adventofcode/comments/3xflz8/day_19_solutions/
+- https://en.wikipedia.org/wiki/CYK_algorithm
+- https://en.wikipedia.org/wiki/Context-free_grammar
+- https://en.wikipedia.org/wiki/Chomsky_normal_form
+
+- https://www.youtube.com/watch?v=h1OSmLSacNA
+- https://www.youtube.com/watch?v=-SZkkMWHBvQ
